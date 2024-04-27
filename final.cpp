@@ -15,6 +15,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/gtc/type_ptr.hpp>
+
 #include <gdev.h>
 #include <cstdlib>
 #include <time.h>
@@ -24,6 +25,9 @@
 #define WINDOW_HEIGHT 1024 // Changed from 360
 #define WINDOW_TITLE "Hello Lighting (use WASDQE keys for camera, IKJLUO keys for light)"
 GLFWwindow *pWindow;
+
+// TEST MODEL
+// Model ourModel;
 
 // model
 float vertices[] =
@@ -276,6 +280,10 @@ bool setup()
     if (!diffuseTexture || !normalTexture)
         return false;
 
+    // TEST MODEL
+    // ourModel = Model("final.obj");
+    // Model ourModel(FileSystem::getPath("resources/objects/backpack/backpack.obj"));
+
     // enable z-buffer depth testing and face culling
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
@@ -493,6 +501,14 @@ void render()
     glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / (11 * sizeof(float)));
 
     /*Chris' Code*/
+
+    // TEST
+    // glm::mat4 model = glm::mat4(1.0f);
+    // model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
+    // model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));     // it's a bit too big for our scene, so scale it down
+    // // ourShader.setMat4("model", model);
+    // glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, glm::value_ptr(model));
+    // ourModel.Draw(shader);
 
     // Commented out just for exercise 3
     //  glm::mat4 modelMatrix = glm::mat4(1.0f); // identity matrix
