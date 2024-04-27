@@ -9,8 +9,7 @@ finalVertices = []
 finalIndices = [] # was actually not needed in the end, but left it here anyway
 tangentSet = []
 textureNames = [] #chris, gets names of unique textures
-textureFaces = [] #chris, gets faces of unique textures
-
+textures = [] #chris, gets faces of unique textures
 def vec3Subtract(a, b):
     ax = a[0]
     ay = a[1]
@@ -75,170 +74,141 @@ def parseVertices(vertices):
             lineReplaced = lineReplaced.replace(' ',',') #chris
             lineReplaced = lineReplaced.replace('\n',' ') #chris
             if (name in textureNames):
-                if (len(textureFaces) <= textureNames.index(name)):
-                    textureFaces.append(lineReplaced)
-                elif (len(textureFaces) > textureNames.index(name)):
-                    textureFaces[textureNames.index(name)] = textureFaces[textureNames.index(name)]+lineReplaced
+                if (len(textures) <= textureNames.index(name)):
+                    textures.append(lineReplaced)
+                elif (len(textures) > textureNames.index(name)):
+                    textures[textureNames.index(name)] = textures[textureNames.index(name)]+lineReplaced
 
     objfile.close()
-    # Each texFace index is a list of vertices for one unique texture
-    for texFace in textureFaces:
+    # Each element of textures is a unique texture
+    # Each textureFaces index is a list of vertices for one instance of that unique texture
+    for textureFaces in textures:
 
-        #textureFaces[i].split() = ['7,5,2,6,6,2,5,7,2', '5,8,3,2,9,3,1,10,3', '4,11,4,7,12,4,3,13,4']
-        texList = texFace.split()
+        #textures[i].split() = ['7,5,2,6,6,2,5,7,2', '5,8,3,2,9,3,1,10,3', '4,11,4,7,12,4,3,13,4']
+        texList = textureFaces.split()
 
-        #codeblock will make texFace = [[7,5,2,6,6,2,5,7,2], [5,8,3,2,9,3,1,10,3], [4,11,4,7,12,4,3,13,4]]
-        # tempTexFace = []
-        # for textLine in texList:
-        #     x = textLine.split(',')
-        #     for i in range(len(x)):
-        #         x[i] = int(x[i])
-        #     tempTexFace.append(x)
-        # textureFaces[textureFaces.index(texFace)] = tempTexFace
-
-        #codeblock will make texFace = [7,5,2,6,6,2,5,7,2, 5,8,3,2,9,3,1,10,3, 4,11,4,7,12,4,3,13,4]
+        #codeblock will make textureFaces = [[7,5,2,6,6,2,5,7,2], [5,8,3,2,9,3,1,10,3], [4,11,4,7,12,4,3,13,4]]
         tempTexFace = []
         for textLine in texList:
             x = textLine.split(',')
             for i in range(len(x)):
                 x[i] = int(x[i])
-            tempTexFace+=x
-        textureFaces[textureFaces.index(texFace)] = tempTexFace
+            tempTexFace.append(x)
+        textures[textures.index(textureFaces)] = tempTexFace
 
-        textFace = tempTexFace
+        #codeblock will make textureFaces = [7,5,2,6,6,2,5,7,2, 5,8,3,2,9,3,1,10,3, 4,11,4,7,12,4,3,13,4]
+        # tempTexFace = []
+        # for textLine in texList:
+        #     x = textLine.split(',')
+        #     for i in range(len(x)):
+        #         x[i] = int(x[i])
+        #     tempTexFace+=x
+        # textures[textures.index(textureFaces)] = tempTexFace
 
-        # vertex / texture / normal
-        fv1_index = texList[0] # first point
-        fvt1_index = texList[1]
-        fvn1_index = texList[2]
+        textureFaces = tempTexFace
 
-        fv2_index = texList[3] # second point
-        fvt2_index = texList[4]
-        fvn2_index = texList[5]
+        #textLine is an element that is a 9-size list.
+        for faces in textureFaces:
+            
+            # vertex / texture / normal
+            fv1_index = faces[0] # first point
+            fvt1_index = faces[1]
+            fvn1_index = faces[2]
 
-        fv3_index = texList[6] # third point
-        fvt3_index = texList[7]
-        fvn3_index = texList[8]
-        # forms an entire triangle
+            fv2_index = faces[3] # second point
+            fvt2_index = faces[4]
+            fvn2_index = faces[5]
 
-        edge1 = vec3Subtract(v[fv2_index-1],v[fv1_index-1])
-        edge2 = vec3Subtract(v[fv3_index-1],v[fv1_index-1])
-        deltaUV1 = vec2Subtract(vt[fvt2_index-1],vt[fvt1_index-1])
-        deltaUV2 = vec2Subtract(vt[fvt3_index-1],vt[fvt1_index-1])
+            fv3_index = faces[6] # third point
+            fvt3_index = faces[7]
+            fvn3_index = faces[8]
+            # forms an entire triangle
 
-        # floatf = 1/ (deltaUV1[0] * deltaUV2[1] - deltaUV2[0] * deltaUV1[1])
-        if (deltaUV1[0] * deltaUV2[1] - deltaUV2[0] * deltaUV1[1] == 0):
-            floatf = 1.0
-        else:   
-            floatf = 1.0 / (deltaUV1[0] * deltaUV2[1] - deltaUV2[0] * deltaUV1[1])
-        
-        tanx = floatf * (deltaUV2[1] * edge1[0] - deltaUV1[1] * edge2[0]) # f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
-        tany = floatf * (deltaUV2[1] * edge1[1] - deltaUV1[1] * edge2[1])
-        tanz = floatf * (deltaUV2[1] * edge1[2] - deltaUV1[1] * edge2[2])
-        
-        tangentSet.append(tanx)
-        tangentSet.append(tany)
-        tangentSet.append(tanz)
+            edge1 = vec3Subtract(v[fv2_index-1],v[fv1_index-1])
+            edge2 = vec3Subtract(v[fv3_index-1],v[fv1_index-1])
+            deltaUV1 = vec2Subtract(vt[fvt2_index-1],vt[fvt1_index-1])
+            deltaUV2 = vec2Subtract(vt[fvt3_index-1],vt[fvt1_index-1])
 
+            # floatf = 1/ (deltaUV1[0] * deltaUV2[1] - deltaUV2[0] * deltaUV1[1])
+            if (deltaUV1[0] * deltaUV2[1] - deltaUV2[0] * deltaUV1[1] == 0):
+                floatf = 1.0
+            else:   
+                floatf = 1.0 / (deltaUV1[0] * deltaUV2[1] - deltaUV2[0] * deltaUV1[1])
+            
+            tanx = floatf * (deltaUV2[1] * edge1[0] - deltaUV1[1] * edge2[0]) # f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+            tany = floatf * (deltaUV2[1] * edge1[1] - deltaUV1[1] * edge2[1])
+            tanz = floatf * (deltaUV2[1] * edge1[2] - deltaUV1[1] * edge2[2])
+            
+            tangentSet.append(tanx)
+            tangentSet.append(tany)
+            tangentSet.append(tanz)
 
-    # #Find a line that starts with "usemtl", get the tangent of all the faces that use that material then immediately append to that material name
-        
-#     for faces in f:
-#         # vertex / texture / normal
-#         fv1_index = faces[0] # first point
-#         fvn1_index = faces[2]
-#         fvt1_index = faces[1]
+            # pair 1
+            for coordinates in v[fv1_index-1]:
+                finalVertices.append(coordinates)
+            for coordinates in vn[fvn1_index-1]:
+                finalVertices.append(coordinates)
+            finalVertices.append(tanx)
+            finalVertices.append(tany)
+            finalVertices.append(tanz)
+            for coordinates in vt[fvt1_index-1]:
+                finalVertices.append(coordinates)
 
-#         fv2_index = faces[3] # second point
-#         fvn2_index = faces[5]
-#         fvt2_index = faces[4]
+            # pair 2
+            for coordinates in v[fv2_index-1]:
+                finalVertices.append(coordinates)
+            for coordinates in vn[fvn2_index-1]:
+                finalVertices.append(coordinates)
+            finalVertices.append(tanx)
+            finalVertices.append(tany)
+            finalVertices.append(tanz)
+            for coordinates in vt[fvt2_index-1]:
+                finalVertices.append(coordinates)
 
-#         fv3_index = faces[6] # third point
-#         fvn3_index = faces[8]
-#         fvt3_index = faces[7]
+            # pair 3
+            for coordinates in v[fv3_index-1]:
+                finalVertices.append(coordinates)
+            for coordinates in vn[fvn3_index-1]:
+                finalVertices.append(coordinates)
+            finalVertices.append(tanx)
+            finalVertices.append(tany)
+            finalVertices.append(tanz)
+            for coordinates in vt[fvt3_index-1]:
+                finalVertices.append(coordinates)
 
-#         # forms an entire triangle
+        finalIndices.append(finalVertices)
+        with open('textureTest.txt', 'w') as test:
+            test.write("finalIndices Size: " + str(len(finalIndices)))
+            # test.write(str(f))
+            test.write("\n")
+            test.write("textureNames Size: " + str(len(textureNames)))
+            test.write("\n")
+            test.write("textureFaces Size: " + str(len(textures)))
+            test.write("\n")
+            test.write("\n")
 
-#         # get tangents
+            for e in range(len(finalIndices)):
+                test.write('float ' + textureNames[e] + '[] = {')
+                test.write("\n")
+                test.write(str(finalIndices[e]))
+                # test.write(str(round(textures[e], 5)))
+                test.write("\n")
+                test.write("};")
+                test.write("\n")
+        finalVertices.clear()
 
-#         edge1 = vec3Subtract(v[fv2_index-1],v[fv1_index-1])
-#         edge2 = vec3Subtract(v[fv3_index-1],v[fv1_index-1])
-#         deltaUV1 = vec2Subtract(vt[fvt2_index-1],vt[fvt1_index-1])
-#         deltaUV2 = vec2Subtract(vt[fvt3_index-1],vt[fvt1_index-1])
-
-#         # floatf = 1/ (deltaUV1[0] * deltaUV2[1] - deltaUV2[0] * deltaUV1[1])
-#         if (deltaUV1[0] * deltaUV2[1] - deltaUV2[0] * deltaUV1[1] == 0):
-#             floatf = 1.0
-#         else:   
-#             floatf = 1.0 / (deltaUV1[0] * deltaUV2[1] - deltaUV2[0] * deltaUV1[1])
-        
-#         tanx = floatf * (deltaUV2[1] * edge1[0] - deltaUV1[1] * edge2[0]) # f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
-#         tany = floatf * (deltaUV2[1] * edge1[1] - deltaUV1[1] * edge2[1])
-#         tanz = floatf * (deltaUV2[1] * edge1[2] - deltaUV1[1] * edge2[2])
-        
-#         tangentSet.append(tanx)
-#         tangentSet.append(tany)
-#         tangentSet.append(tanz)
-
-#         # pair 1
-#         for coordinates in v[fv1_index-1]:
-#             finalVertices.append(coordinates)
-#         for coordinates in vn[fvn1_index-1]:
-#             finalVertices.append(coordinates)
-#         finalVertices.append(tanx)
-#         finalVertices.append(tany)
-#         finalVertices.append(tanz)
-#         for coordinates in vt[fvt1_index-1]:
-#             finalVertices.append(coordinates)
-
-#         # pair 2
-#         for coordinates in v[fv2_index-1]:
-#             finalVertices.append(coordinates)
-#         for coordinates in vn[fvn2_index-1]:
-#             finalVertices.append(coordinates)
-#         finalVertices.append(tanx)
-#         finalVertices.append(tany)
-#         finalVertices.append(tanz)
-#         for coordinates in vt[fvt2_index-1]:
-#             finalVertices.append(coordinates)
-
-#         # pair 3
-#         for coordinates in v[fv3_index-1]:
-#             finalVertices.append(coordinates)
-#         for coordinates in vn[fvn3_index-1]:
-#             finalVertices.append(coordinates)
-#         finalVertices.append(tanx)
-#         finalVertices.append(tany)
-#         finalVertices.append(tanz)
-#         for coordinates in vt[fvt3_index-1]:
-#             finalVertices.append(coordinates)
-        
-    
-    with open('Construct_Half_Vertices.txt','w') as newVerts:
-        count = 0
-        for e in finalVertices:
-            newVerts.write(str(round(e, 5)) + 'f')
-            count+=1
-            newVerts.write(', ')
-            if(count == 3 or count == 6 or count == 9):
-                newVerts.write('\t\t')
-            if(count == 11):
-                newVerts.write('\n')
-                count=0
 parseVertices("Construct_half_scaled_OGroup.obj")
 
-with open('textureTest.txt', 'w') as test:
-    # test.write("f Size: " + str(len(f)))
-    # test.write(str(f))
-    test.write("\n")
-    test.write("BREAK")
-    test.write("\n")
-    # test.write("textureNames Size: " + str(len(textureNames)))
-    test.write("\n")
-    # test.write("textureFaces Size: " + str(len(textureFaces)))
-    test.write("\n")
-
-    test.write(str(textureFaces[0]))
-
+#     with open('Construct_Half_Vertices.txt','w') as newVerts:
+#         count = 0
+#         for e in finalVertices:
+#             newVerts.write(str(round(e, 5)) + 'f')
+#             count+=1
+#             newVerts.write(', ')
+#             if(count == 3 or count == 6 or count == 9):
+#                 newVerts.write('\t\t')
+#             if(count == 11):
+#                 newVerts.write('\n')
+#                 count=0
     #textureFaces[0] = 7,5,2,6,6,2,5,7,2 5,8,3,2,9,3,1,10,3 4,11,4,7,12,4,3,13,4
     #textureFaces[0].split() = ['7,5,2,6,6,2,5,7,2', '5,8,3,2,9,3,1,10,3', '4,11,4,7,12,4,3,13,4']
