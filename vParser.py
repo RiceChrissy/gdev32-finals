@@ -190,7 +190,17 @@ def parseVertices(vertices):
             for e in range(len(finalIndices)):
                 test.write('float ' + textureNames[e] + '[] = {')
                 test.write("\n")
-                test.write(str(finalIndices[e]))
+                count = 0
+                for i in range(len(finalIndices[e])):
+                    test.write(str(round(finalIndices[e][i], 5))+'f')
+                    test.write(", ")
+                    count+=1
+                    if(count == 3 or count == 6 or count == 9):
+                        test.write("\t\t")
+                    if(count == 11):
+                        test.write("\n")
+                        count=0
+                # test.write(str(finalIndices[e]))
                 # test.write(str(round(textures[e], 5)))
                 test.write("\n")
                 test.write("};")
