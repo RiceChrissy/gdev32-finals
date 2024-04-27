@@ -176,10 +176,10 @@ def parseVertices(vertices):
             for coordinates in vt[fvt3_index-1]:
                 finalVertices.append(coordinates)
 
-        finalIndices.append(finalVertices)
+        finalIndices.append(finalVertices[:])
+        finalVertices.clear()
         with open('textureTest.txt', 'w') as test:
             test.write("finalIndices Size: " + str(len(finalIndices)))
-            # test.write(str(f))
             test.write("\n")
             test.write("textureNames Size: " + str(len(textureNames)))
             test.write("\n")
@@ -195,7 +195,7 @@ def parseVertices(vertices):
                 test.write("\n")
                 test.write("};")
                 test.write("\n")
-        finalVertices.clear()
+        
 
 parseVertices("Construct_half_scaled_OGroup.obj")
 
