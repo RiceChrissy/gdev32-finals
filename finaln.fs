@@ -72,7 +72,7 @@ void main()
 {
     // Define spotlight properties
     vec3 lightColor = vec3(1.0f, 1.0f, 1.0f);
-    float ambientIntensity = 0.25f;
+    float ambientIntensity = 0.75f;
     float specularIntensity = 0.5f;            // specular (better implementation: look this up from a specular map!)
     float specularPower = 32.0f;
 
