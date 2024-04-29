@@ -12,18 +12,10 @@ out vec3 shaderPosition;
 out mat3 shaderTBN;
 out vec2 shaderTexCoord;
 out vec3 shaderLightPosition;
+out vec3 directionalNormal;
 
 uniform vec3 spotLightDirection;
 out vec3 shaderLightDirection;
-
-///////////////////////////////////////////////////////////////////////////////
-// added for shadow mapping
-uniform mat4 lightTransform;
-out vec4 shaderLightSpacePosition;
-
-//New Variables for Exercise 3
-uniform bool shadowsAreOn;
-///////////////////////////////////////////////////////////////////////////////
 
 void main()
 {
@@ -37,10 +29,10 @@ void main()
     // compute the normal transform as the transpose of the inverse of the camera transform,
     // then compute a TBN matrix using this transform
     mat3 normalTransform = mat3(transpose(inverse(modelViewTransform)));
-    vec3 normal = normalize(normalTransform * vertexNormal);
+    directionalNormal = normalize(normalTransform * vertexNormal);
     vec3 tangent = normalize(normalTransform * vertexTangent);
-    vec3 bitangent = cross(normal, tangent);
-    shaderTBN = mat3(tangent, bitangent, normal);
+    vec3 bitangent = cross(directionalNormal, tangent);
+    shaderTBN = mat3(tangent, bitangent, directionalNormal);
 
     // also compute the light position in camera space
     // (we want all lighting calculations to be done in camera space to avoid losing precision)
@@ -53,7 +45,5 @@ void main()
 
     ///////////////////////////////////////////////////////////////////////////
     // also compute this fragment position from the light's point of view
-    // if(shadowsAreOn == true)
-        shaderLightSpacePosition = lightTransform * modelTransform * vec4(vertexPosition, 1.0f);
     ///////////////////////////////////////////////////////////////////////////
 }
