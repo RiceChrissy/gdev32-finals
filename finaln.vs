@@ -8,10 +8,19 @@ uniform mat4 projectionTransform;
 uniform mat4 viewTransform;
 uniform mat4 modelTransform;
 uniform vec3 lightPosition;
+uniform vec3 lightPos2;
+uniform vec3 lightPos3;
+uniform vec3 lightPos4;
+uniform vec3 lightPos5;
+
 out vec3 shaderPosition;
 out mat3 shaderTBN;
 out vec2 shaderTexCoord;
 out vec3 shaderLightPosition;
+out vec3 shaderLightPosition2;
+out vec3 shaderLightPosition3;
+out vec3 shaderLightPosition4;
+out vec3 shaderLightPosition5;
 
 uniform vec3 spotLightDirection;
 out vec3 shaderLightDirection;
@@ -19,8 +28,12 @@ out vec3 shaderLightDirection;
 ///////////////////////////////////////////////////////////////////////////////
 // added for shadow mapping
 uniform mat4 lightTransform;
-out vec4 shaderLightSpacePosition;
+uniform mat4 lightTransform2;
+uniform mat4 lightTransform3;
 
+out vec4 shaderLightSpacePosition;
+out vec4 shaderLightSpacePosition2;
+out vec4 shaderLightSpacePosition3;
 //New Variables for Exercise 3
 uniform bool shadowsAreOn;
 ///////////////////////////////////////////////////////////////////////////////
@@ -54,6 +67,26 @@ void main()
     ///////////////////////////////////////////////////////////////////////////
     // also compute this fragment position from the light's point of view
     // if(shadowsAreOn == true)
-        shaderLightSpacePosition = lightTransform * modelTransform * vec4(vertexPosition, 1.0f);
+    shaderLightSpacePosition = lightTransform * modelTransform * vec4(vertexPosition, 1.0f);
+    ///////////////////////////////////////////////////////////////////////////
+
+
+    /// light 2
+
+    shaderLightPosition2 = vec3(viewTransform * vec4(lightPos2, 1.0f));
+    shaderLightSpacePosition2 = lightTransform2 * modelTransform * vec4(vertexPosition, 1.0f);
+
+    /// light 3
+
+    shaderLightPosition3 = vec3(viewTransform * vec4(lightPos3, 1.0f));
+    shaderLightSpacePosition3 = lightTransform3 * modelTransform * vec4(vertexPosition, 1.0f);
+
+    /// light 4
+
+    shaderLightPosition4 = vec3(viewTransform * vec4(lightPos4, 1.0f));
+
+    /// light 5
+
+    shaderLightPosition5 = vec3(viewTransform * vec4(lightPos5, 1.0f));
     ///////////////////////////////////////////////////////////////////////////
 }

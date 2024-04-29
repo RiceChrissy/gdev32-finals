@@ -4,6 +4,11 @@ in vec3 shaderPosition;
 in mat3 shaderTBN;
 in vec2 shaderTexCoord;
 in vec3 shaderLightPosition;
+in vec3 shaderLightPosition2;
+in vec3 shaderLightPosition3;
+in vec3 shaderLightPosition4;
+in vec3 shaderLightPosition5;
+
 uniform sampler2D diffuseMap;
 uniform sampler2D normalMap;
 out vec4 fragmentColor;
@@ -19,11 +24,15 @@ uniform bool attenuationIsOn;
 ///////////////////////////////////////////////////////////////////////////////
 // added for shadow mapping
 in vec4 shaderLightSpacePosition;
+in vec4 shaderLightSpacePosition2;
+in vec4 shaderLightSpacePosition3;
 uniform sampler2D shadowMap;
 uniform int pcfSamples;
 uniform int pcfRandomX[];
 uniform int pcfRandomY[];
 uniform bool shadowsAreOn;
+
+int numberOfLights = 2;
 
 //Source: https://learnopengl.com/Advanced-Lighting/Shadows/Shadow-Mapping
 float inShadow()
@@ -52,24 +61,12 @@ float inShadow()
 
     //PCF
     float shadowAmount = 0.0f;
-    vec2 texelSize = 1.0f / textureSize(shadowMap, 0);
-    for(int x = -pcfSamples; x <= pcfSamples; ++x)
-    {
-        for(int y = -pcfSamples; y <= pcfSamples; ++y)
-        {
-            float depth = texture(shadowMap, (position.xy+vec2(pcfRandomX[x], pcfRandomY[y])) + vec2(x, y) * texelSize).r;
-            shadowAmount += position.z - bias < depth ? 1.0f : 0.0f;            
-        }    
-    }
-    float pcfSamplesFloat = float(pcfSamples);
-    shadowAmount /= ((pcfSamplesFloat*2.0f+1.0f)*(pcfSamplesFloat*2.0f+1.0f));
-
+    shadowAmount += position.z - bias; 
     return shadowAmount;
 }
 ///////////////////////////////////////////////////////////////////////////////
 
-void main()
-{
+vec4 calculateColor(vec3 shaderLightPos){
     // Define spotlight properties
     vec3 lightColor = vec3(1.0f, 1.0f, 1.0f);
     float ambientIntensity = 0.75f;
@@ -85,7 +82,7 @@ void main()
     vec3 lightAmbient = lightColor * ambientIntensity;
 
     // Calculate the direction from the light to the fragment
-    vec3 lightDir = normalize(shaderLightPosition - shaderPosition);
+    vec3 lightDir = normalize(shaderLightPos - shaderPosition);
 
     // Calculate the angle between the light direction and the fragment's direction
     //Source: https://learnopengl.com/Lighting/Light-casters
@@ -94,7 +91,7 @@ void main()
     float intensity = clamp((theta - spotLightOuterRadius) / epsilon, 0.0, 1.5);
 
     //Calculate Attenuation
-    float distance    = length(shaderLightPosition - shaderPosition);
+    float distance    = length(shaderLightPos - shaderPosition);
     float attenuation = 1.0 / (1.0f + (0.045f * distance) + (0.0075f * distance * distance));
                             //constant  +   linear  +   quadratic
 
@@ -109,24 +106,25 @@ void main()
     ///////////////////////////////////////////////////////////////////////////
     // reduce the diffuse and specular components if the fragment is in shadow
     /*Chris' Code*/
+    float shadowModifier = 0.6f;
     if (shadowsAreOn == true)
     {
         float shadowValue = inShadow();
-        lightDiffuse *= shadowValue;
-        lightAmbient *= shadowValue;
-        lightSpecular *= shadowValue;
+        lightDiffuse *= shadowValue-shadowModifier;
+        lightAmbient *= shadowValue-shadowModifier;
+        lightSpecular *= shadowValue-shadowModifier;
     }
 
     ///////////////////////////////////////////////////////////////////////////
-
+    vec4 result;
     // Check if the fragment is within the spotlight cone
     if (intensity > 0)
     {
         // Compute final fragment color
         if (attenuationIsOn == true)
-            fragmentColor = vec4((lightAmbient + lightDiffuse + lightSpecular) * attenuation, 1.0f) * texture(diffuseMap, shaderTexCoord);
+            return result = vec4((lightAmbient + lightDiffuse + lightSpecular) * attenuation, 1.0f);
         else
-            fragmentColor = vec4((lightAmbient + lightDiffuse + lightSpecular), 1.0f) * texture(diffuseMap, shaderTexCoord);
+            return result = vec4((lightAmbient + lightDiffuse + lightSpecular), 1.0f);
     }
     
     else
@@ -135,7 +133,18 @@ void main()
         // zeroing-out diffuse, ambient, and specular is actually better, exclude ambient so it's not pitch black
         lightDiffuse = lightSpecular = vec3(0.0f, 0.0f, 0.0f);
         lightAmbient = lightAmbient/2;  //Ambient outside the spotlight is dimmer than the ambient inside the spotlight
-        fragmentColor = vec4((lightAmbient + lightDiffuse + lightSpecular), 1.0f) * texture(diffuseMap, shaderTexCoord);
+        return result = vec4((lightAmbient + lightDiffuse + lightSpecular), 1.0f);
     }
+}
+
+void main()
+{
+    vec4 a = calculateColor(shaderLightPosition);
+    vec4 b = calculateColor(shaderLightPosition2);
+    vec4 c = calculateColor(shaderLightPosition3);
+    vec4 d = calculateColor(shaderLightPosition4);
+    vec4 f = calculateColor(shaderLightPosition5);
+
+    fragmentColor = (a + b + c + d + f) * texture(diffuseMap, shaderTexCoord);
 }
 
