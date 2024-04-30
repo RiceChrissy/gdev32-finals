@@ -125,11 +125,9 @@ vec4 calculateSpotLight(vec3 shaderLightPos)
 
     // Calculate ambient
     vec3 lightAmbient = lightColor * ambientIntensity;
-    vec3 sunLightAmbient = lightColor * ambientIntensity;
 
     // Calculate the direction from the light to the fragment
     vec3 lightDir = normalize(shaderLightPos - shaderPosition);
-    vec3 sunLightDir = normalize(vec3(-0.2f, -1.0f, -0.3f));
 
     // Calculate the angle between the light direction and the fragment's direction
     //Source: https://learnopengl.com/Lighting/Light-casters
@@ -144,35 +142,21 @@ vec4 calculateSpotLight(vec3 shaderLightPos)
 
     // Calculate diffuse
     vec3 lightDiffuse = max(dot(normalDir, -lightDir), 0.0f) * lightColor;
-    vec3 sunLightDiffuse = max(dot(normalDir, -sunLightDir), 0.0f) * lightColor;
-
     // Calculate specular
     vec3 viewDir = normalize(-shaderPosition);
     vec3 reflectDir = reflect(-lightDir, normalDir);
     vec3 lightSpecular = pow(max(dot(reflectDir, viewDir)* intensity, 0), specularPower) * lightColor * specularIntensity;
-    vec3 sunLightSpecular = pow(max(dot(reflectDir, viewDir), 0), specularPower) * lightColor * specularIntensity;
 
     // Check if the fragment is within the spotlight cone
     vec4 result;
-    // if (intensity > 0)
-    // {
-    //     // Compute final fragment color
-    //     if (attenuationIsOn == true){
-    //         lightDiffuse *= attenuation;
-    //         lightSpecular *= attenuation;
-    //         return result = vec4((lightAmbient + lightDiffuse + lightSpecular), 1.0f);
-    //     }
-    //     else
-    //         return result = vec4((lightAmbient + lightDiffuse + lightSpecular), 1.0f);
-    // }
-    // else{
-    //     lightAmbient = lightDiffuse = lightSpecular = vec3(0.0f, 0.0f, 0.0f);
-    //     return result = vec4((lightAmbient + lightDiffuse + lightSpecular), 1.0f);
-    // }
     lightDiffuse *= intensity;
     lightAmbient *= intensity;
     lightSpecular *= intensity;
-    return result = vec4((lightAmbient + lightDiffuse + lightSpecular), 1.0f);
+    // Compute final fragment color
+    if (attenuationIsOn == true)
+        return result = vec4((lightAmbient + lightDiffuse + lightSpecular) * attenuation, 1.0f);
+    else
+        return result = vec4((lightAmbient + lightDiffuse + lightSpecular), 1.0f);
 }
 
 vec4 calculateSunLight(vec3 sunLightDir, vec3 lAmbient, vec3 lDiffuse, vec3 lSpecular)
@@ -204,21 +188,15 @@ void main()
     vec3 reflectDir = reflect(-lightDir, normalDir);
 
     vec3 sunLightAmbient = lightColor * ambientIntensity;
-    vec3 sunLightDiffuse = max(dot(normalDir, -sunLightDir), 0.0f) * lightColor;
+    vec3 sunLightDiffuse = max(dot(normalDir, -sunLightDir), 0.0f) * vec3(0.5f, 0.5f, 0.5f);
     vec3 sunLightSpecular = pow(max(dot(reflectDir, viewDir), 0), specularPower) * lightColor;
 
     vec4 e = vec4((sunLightAmbient + sunLightDiffuse + sunLightSpecular), 1.0f);
     e+= calculateSpotLight(shaderLightPosition);
     e+= calculateSpotLight(shaderLightPosition2);
-    // e+= calculateSpotLight(shaderLightPosition3);
-    // e+= calculateSpotLight(shaderLightPosition4);
-    // e+= calculateSpotLight(shaderLightPosition5);
-    // vec4 e = calculateSpotLight(shaderLightPosition);
-    // vec3 a = calculateSpotLight(shaderLightPosition);
-    // vec3 b = calculateSpotLight(shaderLightPosition2);
-    // vec3 c = calculateSpotLight(shaderLightPosition3);
-    // vec3 d = calculateSpotLight(shaderLightPosition4);
-    // vec3 f = calculateSpotLight(shaderLightPosition5);
+    e+= calculateSpotLight(shaderLightPosition3);
+    e+= calculateSpotLight(shaderLightPosition4);
+    e+= calculateSpotLight(shaderLightPosition5);
 
     fragmentColor = e * texture(diffuseMap, shaderTexCoord);
 }
